@@ -66,12 +66,33 @@ function onScanSuccess(decodedText) {
         })
         .then(res => res.json())
         .then(res => {
+            const emp = res.employee || {};
+            const infoHtml = `
+                <div>
+                    姓名：${emp.employeeName || '-'}<br>
+                    員工編號：${emp.employeeId || '-'}<br>
+                    駐廠單位：${emp.vendor || '-'}<br>
+                    抽獎編號：${emp.lotteryNumber || '-'}
+                </div>
+            `;
+
             if (res.status === "success") {
-                document.getElementById("result").innerHTML =
-                    `<span class="success">✅ ${res.message}</span>`;
+                document.getElementById("result").innerHTML = `
+                    <div class="success">
+                        ✅ ${res.message}<br><br>
+                        ${infoHtml}
+                    </div>
+                `;
+                // 成功震動（手機超有感）
+                if (navigator.vibrate) navigator.vibrate(200);
+
             } else {
-                document.getElementById("result").innerHTML =
-                    `<span class="error">❌ ${res.message}</span>`;
+                document.getElementById("result").innerHTML = `
+                    <div class="error">
+                        ❌ ${res.message}<br><br>
+                        ${infoHtml}
+                    </div>
+                `;
             }
         })
         .catch(err => {
@@ -112,4 +133,5 @@ startScan();
 
 </body>
 </html>
+
 
