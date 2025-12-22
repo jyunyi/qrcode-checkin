@@ -44,10 +44,19 @@
 <script>
 const FLOW_URL = "https://defaultbc3537b3c13c4c488151cd56a09cba.80.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cf8d529123484bbea8a7dd13f93e8789/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=TsVvKR2PbvRv01ADQlR3MJD_X45pOZ6xxX8tJl9MDgQ";
 
+let scanLock = false;      // 🔒 防止連續掃描
+let html5QrCode = null;   // 掃描器實體
+
 function onScanSuccess(decodedText) {
+    // 已鎖定就直接忽略
+    if (scanLock) return;
+    scanLock = true;
+
+    // 先停止掃描（非常重要）
+    html5QrCode.stop().catch(() => {});
+
     try {
         const data = JSON.parse(decodedText);
-
         document.getElementById("result").innerText = "送出驗證中…";
 
         fetch(FLOW_URL, {
@@ -59,32 +68,48 @@ function onScanSuccess(decodedText) {
         .then(res => {
             if (res.status === "success") {
                 document.getElementById("result").innerHTML =
-                    `<span class="success">${res.message}</span>`;
+                    `<span class="success">✅ ${res.message}</span>`;
             } else {
                 document.getElementById("result").innerHTML =
-                    `<span class="error">${res.message}</span>`;
+                    `<span class="error">❌ ${res.message}</span>`;
             }
         })
         .catch(err => {
             document.getElementById("result").innerHTML =
                 `<span class="error">系統錯誤，請重試</span>`;
             console.error(err);
+        })
+        .finally(() => {
+            // ⏱ 3 秒後重新開放掃描
+            setTimeout(startScan, 3000);
         });
 
     } catch (e) {
         document.getElementById("result").innerHTML =
             `<span class="error">QRCode 格式錯誤</span>`;
+
+        // 格式錯誤也 2 秒後恢復
+        setTimeout(startScan, 2000);
     }
 }
 
-const html5QrCode = new Html5Qrcode("reader");
+function startScan() {
+    scanLock = false;
+    document.getElementById("result").innerText = "請將 QRCode 對準鏡頭";
 
-html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    onScanSuccess
-);
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+    );
+}
+
+// 初始化
+html5QrCode = new Html5Qrcode("reader");
+startScan();
 </script>
+
 
 </body>
 </html>
+
