@@ -30,6 +30,19 @@
     }
     .success { color: green; }
     .error { color: red; }
+    .btn-back {
+        margin-top: 20px;
+        padding: 12px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        background: #007bff;
+        color: #fff;
+        cursor: pointer;
+    }
+    .btn-back:active {
+        background: #0056b3;
+    }
 </style>
 </head>
 
@@ -48,16 +61,15 @@ let scanLock = false;      // 🔒 防止連續掃描
 let html5QrCode = null;   // 掃描器實體
 
 function onScanSuccess(decodedText) {
-    // 已鎖定就直接忽略
     if (scanLock) return;
     scanLock = true;
 
-    // 先停止掃描（非常重要）
+    // 停止掃描
     html5QrCode.stop().catch(() => {});
 
     try {
         const data = JSON.parse(decodedText);
-        document.getElementById("result").innerText = "送出驗證中…";
+        document.getElementById("result").innerHTML = "送出驗證中…";
 
         fetch(FLOW_URL, {
             method: "POST",
@@ -68,49 +80,40 @@ function onScanSuccess(decodedText) {
         .then(res => {
             const emp = res.employee || {};
             const infoHtml = `
-                <div>
-                    姓名：${emp.employeeName || '-'}<br>
-                    員工編號：${emp.employeeId || '-'}<br>
-                    駐廠單位：${emp.vendor || '-'}<br>
-                    抽獎編號：${emp.lotteryNumber || '-'}
-                </div>
+                姓名：${emp.employeeName || '-'}<br>
+                員工編號：${emp.employeeId || '-'}<br>
+                駐廠單位：${emp.vendor || '-'}<br>
+                抽獎編號：${emp.lotteryNumber || '-'}
             `;
 
-            if (res.status === "success") {
-                document.getElementById("result").innerHTML = `
-                    <div class="success">
-                        ✅ ${res.message}<br><br>
-                        ${infoHtml}
-                    </div>
-                `;
-                // 成功震動（手機超有感）
-                if (navigator.vibrate) navigator.vibrate(200);
+            const statusClass = res.status === "success" ? "success" : "error";
+            const icon = res.status === "success" ? "✅" : "❌";
 
-            } else {
-                document.getElementById("result").innerHTML = `
-                    <div class="error">
-                        ❌ ${res.message}<br><br>
-                        ${infoHtml}
-                    </div>
-                `;
+            document.getElementById("result").innerHTML = `
+                <div class="${statusClass}">
+                    ${icon} ${res.message}<br><br>
+                    ${infoHtml}
+                </div>
+                <button class="btn-back" onclick="startScan()">返回掃描畫面</button>
+            `;
+
+            if (res.status === "success" && navigator.vibrate) {
+                navigator.vibrate(200);
             }
         })
         .catch(err => {
-            document.getElementById("result").innerHTML =
-                `<span class="error">系統錯誤，請重試</span>`;
+            document.getElementById("result").innerHTML = `
+                <div class="error">系統錯誤，請重試</div>
+                <button class="btn-back" onclick="startScan()">返回掃描畫面</button>
+            `;
             console.error(err);
-        })
-        .finally(() => {
-            // ⏱ 3 秒後重新開放掃描
-            setTimeout(startScan, 3000);
         });
 
     } catch (e) {
-        document.getElementById("result").innerHTML =
-            `<span class="error">QRCode 格式錯誤</span>`;
-
-        // 格式錯誤也 2 秒後恢復
-        setTimeout(startScan, 2000);
+        document.getElementById("result").innerHTML = `
+            <div class="error">QRCode 格式錯誤</div>
+            <button class="btn-back" onclick="startScan()">返回掃描畫面</button>
+        `;
     }
 }
 
@@ -133,5 +136,6 @@ startScan();
 
 </body>
 </html>
+
 
 
