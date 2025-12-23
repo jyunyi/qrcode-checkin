@@ -57,8 +57,8 @@
 <script>
 const FLOW_URL = "https://defaultbc3537b3c13c4c488151cd56a09cba.80.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cf8d529123484bbea8a7dd13f93e8789/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=TsVvKR2PbvRv01ADQlR3MJD_X45pOZ6xxX8tJl9MDgQ";
 
-let scanLock = false;      // 🔒 防止連續掃描
-let html5QrCode = null;   // 掃描器實體
+let scanLock = false;     //防止連續掃描
+let html5QrCode = null;   //掃描器實體
 
 function onScanSuccess(decodedText) {
     if (scanLock) return;
@@ -137,6 +137,7 @@ startScan();
 
 </body>
 </html>
+
 
 
 
