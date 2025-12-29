@@ -84,7 +84,8 @@ function onScanSuccess(decodedText) {
                 員工編號：${emp.employeeId || '-'}<br>
                 駐廠單位：${emp.vendor || '-'}<br>
                 抽獎編號：${emp.lotteryNumber || '-'}<br>
-                桌次 :${emp.TableNumber || '-'}
+                桌次 :${emp.TableNumber || '-'}<br>
+                飲食需求 :${emp.DietaryNeeds || '-'}
             `;
 
             const statusClass = res.status === "success" ? "success" : "error";
@@ -137,6 +138,7 @@ startScan();
 
 </body>
 </html>
+
 
 
 
